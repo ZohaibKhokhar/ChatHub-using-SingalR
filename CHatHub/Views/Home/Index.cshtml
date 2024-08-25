@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <input type="text" name="name" value="" id="message" />
+    <button type="button" id="send">Send</button>
+</div>
+
+<div id="messagesList"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    // Create a connection to the SignalR hub
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .build();
+
+    // Start the connection
+    connection.start().then(function () {
+        console.log('Connection started successfully');
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+
+    // Handle receiving a message
+    connection.on("ReceiveMessage", function (user, message) {
+        var msg = user + ": " + message;
+        var li = document.createElement("li");
+        li.textContent = msg;
+        document.getElementById("messagesList").appendChild(li);
+    });
+
+    // Send a message when the button is clicked
+    document.getElementById("send").addEventListener("click", function (event) {
+        var user = "User"; // You can get the user's name from an input field or session
+        var message = document.getElementById("message").value;
+
+        connection.invoke("SendMessage", user, message).catch(function (err) {
+            return console.error(err.toString());
+        });
+
+        event.preventDefault();
+    });
+</script>
